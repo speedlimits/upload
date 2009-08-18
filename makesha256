@@ -1,0 +1,2 @@
+#!/bin/bash
+gcc -o sha256 sha2.c sha2prog.c
