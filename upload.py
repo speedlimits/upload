@@ -36,6 +36,7 @@ def error(*args):
     for i in args:
         s += str(i) + " "
     print s
+    upload_log.write(s + "\n")
     error_msgs.append(s)
 
 def say(*args):
@@ -45,7 +46,8 @@ def say(*args):
     print s
     upload_log.write(s + "\n")
 
-hashes = {}
+hashes = set()
+name2hash = {}
 
 def main():
     try:
@@ -56,6 +58,8 @@ def main():
                 os.system("rm tempSirikataUpload/*")
     except:
         system("mkdir tempSirikataUpload")
+    say( "----------------------------------------------------------")
+    say( "populating temp directory with name files:")
     f = open("Staging/names.txt")
     for i in f.readlines():
         try:
@@ -64,10 +68,12 @@ def main():
             error( "that looks like crap, not a name/mesh pair")
             continue
         clean = hash[-64:]
-        hashes[clean]=name
+        hashes.add(clean)
+        name2hash[name]=clean
         fo = open("tempSirikataUpload/"+name, "w")
         fo.write(hash)
         fo.close()
+        say(name, "=>", hash)
     f.close()
 
     ftp = FTP("sirikata.com")
@@ -93,17 +99,16 @@ def main():
                 except:
                     error( "problem uploading asset file:", i)
         else:
-            error( hashes[i], " points to missing file", i)
-            hashes[i] = None
-
+            error("missing asset file:", i)
     say( "done")
     say( "----------------------------------------------------------")
     say( "copying name files:")
     files = os.listdir(fixsysline("tempSirikataUpload"))
     for fil in files:
-        if not fil in hashes.values():
-            say( "skipping name file that points to missing asset:", fil)
-            continue
+        if not fil in name2hash:
+            error( "SKIPPING name file, was this in tempSirikataUpload?", fil)
+            print "FATAL ERROR"
+            exit()
         say( "copying ", fil)
         cmd = "STOR content/names/tempUploadNameFile"
         try:
