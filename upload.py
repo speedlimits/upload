@@ -1,6 +1,7 @@
 #!/usr/bin/python
-import os, sys
+import os, sys, time
 from ftplib import FTP
+from Tkinter import *
 
 WINDOWS = False             #cygwin is not windows!
 
@@ -28,7 +29,15 @@ def checkhttpfile(path):
         return 0
     return 1
 
-hashes = set()
+error_msgs = []
+def error(*args):
+    s = ""
+    for i in args:
+        s += str(i) + " "
+    print s
+    error_msgs.append(s)
+
+hashes = {}
 def main():
     try:
         if not os.listdir("tempSirikataUpload") == []:
@@ -43,10 +52,10 @@ def main():
         try:
             name, hash = i.strip().split()
         except:
-            print "that looks like crap, not a name/mesh pair"
+            error( "that looks like crap, not a name/mesh pair")
             continue
         clean = hash[-64:]
-        hashes.add(clean)
+        hashes[clean]=name
         fo = open("tempSirikataUpload/"+name, "w")
         fo.write(hash)
         fo.close()
@@ -62,20 +71,23 @@ def main():
     files = os.listdir(fixsysline("tempSirikataUpload"))
     for fil in files:
         print "copying ", fil
-        cmd = "STOR content/names/" + fil
+        cmd = "STOR content/names/tempUploadNameFile"
         try:
             f = open(fixsysline("tempSirikataUpload/")+fil)
             ftp.storbinary(cmd, f)
             f.close()
+            ftp.rename("content/names/tempUploadNameFile", "content/names/" + fil)
         except:
-            print "problem uploading -- read only? skipping this one"
+            error( "problem uploading -- read only? skipping this one")
     print "done"
     print "----------------------------------------------------------"
     print "copying asset files:"
     assetlist = os.listdir("Cache")
     assetlist2 = os.listdir("Staging")
-    for i in assetlist+assetlist2:
-        if i in hashes:
+    for i in hashes:
+##    for i in assetlist+assetlist2:
+##        if i in hashes:
+        if i in assetlist+assetlist2:
             if checkhttpfile("http://www.sirikata.com/content/assets/" + i):
                 print i, "found on server, not copying"
             else:
@@ -88,8 +100,41 @@ def main():
                 f = open(fixsysline(cachedir)+i)
                 ftp.storbinary(cmd, f)
                 f.close()
+        else:
+            error( hashes[i], " points to missing file", i)
 
     ftp.quit()
     print "done"
 
 main()
+
+def cb():
+    exit()
+
+f = open("upload_error.log", "w")
+t = Tk()
+s = '+' + repr(300) + '+' + repr(300)
+t.geometry(s)
+
+if error_msgs:
+    l = Label(t, text="UPLOAD ERRORS")
+    l.pack()
+    print "***********************ERROR****************************"
+    for i in error_msgs:
+        l = Label(t, text=i)
+        l.pack()
+        print i
+    f.write(i)
+    f.write("\n")
+    print "********************************************************"
+
+else:
+    l = Label(t, text="UPLOAD COMPLETED SUCCESSFULLY")
+    l.pack()
+    f.write("no errors\n")
+
+f.close()
+
+b = Button(t, text="OK", command=cb)
+b.pack()
+mainloop()
