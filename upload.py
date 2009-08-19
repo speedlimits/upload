@@ -30,6 +30,7 @@ def checkhttpfile(path):
     return 1
 
 error_msgs = []
+
 def error(*args):
     s = ""
     for i in args:
@@ -37,7 +38,15 @@ def error(*args):
     print s
     error_msgs.append(s)
 
+def say(*args):
+    s = ""
+    for i in args:
+        s += str(i) + " "
+    print s
+    upload_log.write(s + "\n")
+
 hashes = {}
+
 def main():
     try:
         if not os.listdir("tempSirikataUpload") == []:
@@ -61,32 +70,18 @@ def main():
         fo.close()
     f.close()
 
-    print "----------------------------------------------------------"
-    print "copying name files:"
     ftp = FTP("sirikata.com")
     ftp.login("slartist", "V3sb4Dkb")
-    files = os.listdir(fixsysline("tempSirikataUpload"))
-    for fil in files:
-        print "copying ", fil
-        cmd = "STOR content/names/tempUploadNameFile"
-        try:
-            f = open(fixsysline("tempSirikataUpload/")+fil)
-            ftp.storbinary(cmd, f)
-            f.close()
-            ftp.rename("content/names/tempUploadNameFile", "content/names/" + fil)
-        except:
-            error( "problem uploading name file -- read only? skipping this one")
-    print "done"
-    print "----------------------------------------------------------"
-    print "copying asset files:"
+    say( "----------------------------------------------------------")
+    say( "copying asset files:")
     assetlist = os.listdir("Cache")
     assetlist2 = os.listdir("Staging")
     for i in hashes:
         if i in assetlist+assetlist2:
             if checkhttpfile("http://www.sirikata.com/content/assets/" + i):
-                print i, "found on server, not copying"
+                say( i, "found on server, not copying")
             else:
-                print "copying", i
+                say( "copying", i)
                 cachedir = "Staging/" if (i in assetlist2) else "Cache/"
 ##                cmd = "STOR content/assets/" + i
                 cmd = "STOR content/assets/tempUploadAssetFile"
@@ -99,16 +94,38 @@ def main():
                     error( "problem uploading asset file:", i)
         else:
             error( hashes[i], " points to missing file", i)
+            hashes[i] = None
+
+    say( "done")
+    say( "----------------------------------------------------------")
+    say( "copying name files:")
+    files = os.listdir(fixsysline("tempSirikataUpload"))
+    for fil in files:
+        if not fil in hashes.values():
+            say( "skipping name file that points to missing asset:", fil)
+            continue
+        say( "copying ", fil)
+        cmd = "STOR content/names/tempUploadNameFile"
+        try:
+            f = open(fixsysline("tempSirikataUpload/")+fil)
+            ftp.storbinary(cmd, f)
+            f.close()
+            ftp.rename("content/names/tempUploadNameFile", "content/names/" + fil)
+        except:
+            error( "problem uploading name file -- read only? skipping this one")
+            raise
+    say( "done")
+    say( "----------------------------------------------------------")
 
     ftp.quit()
-    print "done"
 
+
+upload_log = open("upload.log", "w")
 main()
 
 def cb():
     exit()
 
-f = open("upload_error.log", "w")
 t = Tk()
 s = '+' + repr(300) + '+' + repr(300)
 t.geometry(s)
@@ -116,22 +133,19 @@ t.geometry(s)
 if error_msgs:
     l = Label(t, text="UPLOAD ERRORS")
     l.pack()
-    print "***********************ERROR****************************"
+    say( "***********************ERROR****************************")
     for i in error_msgs:
         l = Label(t, text=i)
         l.pack()
-        print i
-    f.write(i)
-    f.write("\n")
-    print "********************************************************"
+        say( i)
+    say( "********************************************************")
 
 else:
     l = Label(t, text="UPLOAD COMPLETED SUCCESSFULLY")
     l.pack()
-    f.write("no errors\n")
-
-f.close()
 
 b = Button(t, text="OK", command=cb)
 b.pack()
 mainloop()
+
+upload_log.close()
