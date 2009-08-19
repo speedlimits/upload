@@ -63,9 +63,6 @@ def main():
 
     print "----------------------------------------------------------"
     print "copying name files:"
-##    cmd = SCP + fixsysline(" tempSirikataUpload/*") + " henrikbennetsen@delorean.dreamhost.com:sirikata.com/content/names/."
-##    ##print "os.cmd:", cmd
-##    os.system(cmd)
     ftp = FTP("sirikata.com")
     ftp.login("slartist", "V3sb4Dkb")
     files = os.listdir(fixsysline("tempSirikataUpload"))
@@ -78,28 +75,28 @@ def main():
             f.close()
             ftp.rename("content/names/tempUploadNameFile", "content/names/" + fil)
         except:
-            error( "problem uploading -- read only? skipping this one")
+            error( "problem uploading name file -- read only? skipping this one")
     print "done"
     print "----------------------------------------------------------"
     print "copying asset files:"
     assetlist = os.listdir("Cache")
     assetlist2 = os.listdir("Staging")
     for i in hashes:
-##    for i in assetlist+assetlist2:
-##        if i in hashes:
         if i in assetlist+assetlist2:
             if checkhttpfile("http://www.sirikata.com/content/assets/" + i):
                 print i, "found on server, not copying"
             else:
                 print "copying", i
                 cachedir = "Staging/" if (i in assetlist2) else "Cache/"
-##                cmd = fixsysline(SCP+" " + cachedir + i) + " henrikbennetsen@delorean.dreamhost.com:sirikata.com/content/assets/."
-##                ##print "os.cmd:", cmd
-##                os.system(cmd)
-                cmd = "STOR content/assets/" + i
-                f = open(fixsysline(cachedir)+i)
-                ftp.storbinary(cmd, f)
-                f.close()
+##                cmd = "STOR content/assets/" + i
+                cmd = "STOR content/assets/tempUploadAssetFile"
+                try:
+                    f = open(fixsysline(cachedir)+i)
+                    ftp.storbinary(cmd, f)
+                    f.close()
+                    ftp.rename("content/assets/tempUploadAssetFile", "content/assets/" + i)
+                except:
+                    error( "problem uploading asset file:", i)
         else:
             error( hashes[i], " points to missing file", i)
 
