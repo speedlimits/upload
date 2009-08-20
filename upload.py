@@ -89,15 +89,14 @@ def main():
             else:
                 say( "copying", i)
                 cachedir = "Staging/" if (i in assetlist2) else "Cache/"
-##                cmd = "STOR content3/assets/" + i
                 cmd = "STOR content3/assets/tempUploadAssetFile"
-                if 1:#try:
+                try:
                     f = open(fixsysline(cachedir)+i)
                     ftp.storbinary(cmd, f)
                     f.close()
                     ftp.rename("content3/assets/tempUploadAssetFile", "content3/assets/" + i)
-##                except:
-##                    error( "problem uploading asset file:", i)
+                except:
+                    error( "problem uploading asset file:", i)
         else:
             if checkhttpfile("http://www.sirikata.com/content/assets/" + i):
                 say( i, "(missing local asset) found on server, not copying")
@@ -154,6 +153,6 @@ else:
 
 b = Button(t, text="OK", command=cb)
 b.pack()
+upload_log.close()
 mainloop()
 
-upload_log.close()
