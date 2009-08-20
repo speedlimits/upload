@@ -89,17 +89,20 @@ def main():
             else:
                 say( "copying", i)
                 cachedir = "Staging/" if (i in assetlist2) else "Cache/"
-##                cmd = "STOR content/assets/" + i
-                cmd = "STOR content/assets/tempUploadAssetFile"
-                try:
+##                cmd = "STOR content3/assets/" + i
+                cmd = "STOR content3/assets/tempUploadAssetFile"
+                if 1:#try:
                     f = open(fixsysline(cachedir)+i)
                     ftp.storbinary(cmd, f)
                     f.close()
-                    ftp.rename("content/assets/tempUploadAssetFile", "content/assets/" + i)
-                except:
-                    error( "problem uploading asset file:", i)
+                    ftp.rename("content3/assets/tempUploadAssetFile", "content3/assets/" + i)
+##                except:
+##                    error( "problem uploading asset file:", i)
         else:
-            error("missing asset file:", i)
+            if checkhttpfile("http://www.sirikata.com/content/assets/" + i):
+                say( i, "(missing local asset) found on server, not copying")
+            else:
+                error("missing asset file, not local OR on server:", i)
     say( "done")
     say( "----------------------------------------------------------")
     say( "copying name files:")
@@ -110,12 +113,12 @@ def main():
             print "FATAL ERROR"
             exit()
         say( "copying ", fil)
-        cmd = "STOR content/names/tempUploadNameFile"
+        cmd = "STOR content3/names/tempUploadNameFile"
         try:
             f = open(fixsysline("tempSirikataUpload/")+fil)
             ftp.storbinary(cmd, f)
             f.close()
-            ftp.rename("content/names/tempUploadNameFile", "content/names/" + fil)
+            ftp.rename("content3/names/tempUploadNameFile", "content3/names/" + fil)
         except:
             error( "problem uploading name file -- read only? skipping this one")
             raise
