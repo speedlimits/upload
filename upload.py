@@ -2,6 +2,9 @@
 import os, sys, time
 from ftplib import FTP
 from Tkinter import *
+import random
+
+tempfilename = "temp_" + str(random.randint(1,10000000))
 
 WINDOWS = False             #cygwin is not windows!
 
@@ -89,12 +92,12 @@ def main():
             else:
                 say( "copying", i)
                 cachedir = "Staging/" if (i in assetlist2) else "Cache/"
-                cmd = "STOR content3/assets/tempUploadAssetFile"
+                cmd = "STOR content3/assets/" + tempfilename
                 try:
-                    f = open(fixsysline(cachedir)+i)
+                    f = open(fixsysline(cachedir)+i, "rb")
                     ftp.storbinary(cmd, f)
                     f.close()
-                    ftp.rename("content3/assets/tempUploadAssetFile", "content3/assets/" + i)
+                    ftp.rename("content3/assets/" + tempfilename, "content3/assets/" + i)
                 except:
                     error( "problem uploading asset file:", i)
         else:
@@ -112,12 +115,12 @@ def main():
             print "FATAL ERROR"
             exit()
         say( "copying ", fil)
-        cmd = "STOR content3/names/tempUploadNameFile"
+        cmd = "STOR content3/names/" + tempfilename
         try:
             f = open(fixsysline("tempSirikataUpload/")+fil)
             ftp.storbinary(cmd, f)
             f.close()
-            ftp.rename("content3/names/tempUploadNameFile", "content3/names/" + fil)
+            ftp.rename("content3/names/" + tempfilename, "content3/names/" + fil)
         except:
             error( "problem uploading name file -- read only? skipping this one")
             raise
