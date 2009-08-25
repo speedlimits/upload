@@ -2,6 +2,7 @@
 import os, sys, time
 from ftplib import FTP
 from Tkinter import *
+import tkSimpleDialog
 import random
 
 tempfilename = "temp_" + str(random.randint(1,10000000))
@@ -80,7 +81,7 @@ def main():
     f.close()
 
     ftp = FTP("sirikata.com")
-    ftp.login("slartist", "V3sb4Dkb")
+    ftp.login("slartist", password)
     say( "----------------------------------------------------------")
     say( "copying asset files:")
     assetlist = os.listdir("Cache")
@@ -131,14 +132,21 @@ def main():
 
 
 upload_log = open("upload.log", "w")
-main()
+t = Tk()
+s = '+' + repr(300) + '+' + repr(300)
+t.geometry(s)
+t.update()
+time.sleep(.1)
+t.update()
+password = tkSimpleDialog.askstring("enter password", "OK", show="*", parent=t)
+try:
+    main()
+except:
+    error("problem in main() -- bad password?")
 
 def cb():
     exit()
 
-t = Tk()
-s = '+' + repr(300) + '+' + repr(300)
-t.geometry(s)
 
 if error_msgs:
     l = Label(t, text="UPLOAD ERRORS")

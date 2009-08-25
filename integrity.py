@@ -5,17 +5,6 @@ import os, sys
 ##import hashlib
 ##from ftplib import FTP
 
-"""
-def cb(s):
-    fname = s.split()[-1]
-    print fname
-
-ftp = FTP("sirikata.com")
-ftp.login("slartist", "V3sb4Dkb")
-ftp.dir("content/assets", cb)
-ftp.quit()
-"""
-
 def sha256(filename):
     cmd = "./sha256 -256 " + filename
     sin, sout = os.popen2(cmd)
