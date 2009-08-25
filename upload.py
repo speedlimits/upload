@@ -149,7 +149,7 @@ def cb():
 
 
 if error_msgs:
-    l = Label(t, text="UPLOAD ERRORS")
+    l = Label(t, text="CONVERSION ERRORS")
     l.pack()
     say( "***********************ERROR****************************")
     for i in error_msgs:
