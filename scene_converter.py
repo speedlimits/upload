@@ -1,8 +1,9 @@
-import sys, time
+import sys, time, os
 from xml.dom import minidom
 from Tkinter import *
 import tkSimpleDialog
 import tkMessageBox
+import tkFileDialog
 
 def attFloats2list(el, *ats):
     ret = []
@@ -22,80 +23,86 @@ def say(*args):
         s += str(i) + " "
     print s
 
-def main(fname, outfile=sys.stdout):
-    try:
-        x = minidom.parse(fname)
-    except:
-        errors.append("minidom.parse failed on " + str(fname))
-        raise
-    try:
-        scene = x.getElementsByTagName("scene")[0]              #should only be 1
-    except:
-        errors.append("scene not found -- is this a 3DMAX xml file?")
-        raise
-    nodes = scene.getElementsByTagName("nodes")[0]
-    nodes = nodes.getElementsByTagName("node")
+files = []
 
+def walk_cb(arg, dirname, fnames):
+    global files
+    if ".git" in dirname:
+        return
+    for fi in fnames:
+        if fi[-6:] == ".scene":
+            files.append(dirname + "/" + fi)
+            print "converting:", files[-1]
+
+def main(path, outfile=sys.stdout):
+    global files
+
+    os.path.walk(path, walk_cb, 0)
+    
     print >> outfile, row1
     print >> outfile, row2
     print >> outfile, row3
 
-    names = set()
+    for fname in files:
+        try:
+            x = minidom.parse(fname)
+        except:
+            errors.append("minidom.parse failed on " + str(fname))
+            raise
+        try:
+            scene = x.getElementsByTagName("scene")[0]              #should only be 1
+        except:
+            errors.append("scene not found -- is this a 3DMAX xml file?")
+            raise
+        nodes = scene.getElementsByTagName("nodes")[0]
+        nodes = nodes.getElementsByTagName("node")
 
-    for node in nodes:
-        name = node.getAttribute("name")
-        scale = attFloats2list(node.getElementsByTagName("scale")[0], "x", "y", "z")
-        pos = attFloats2list(node.getElementsByTagName("position")[0], "x", "y", "z")
-        rot = attFloats2list(node.getElementsByTagName("rotation")[0], "qx", "qy", "qz", "qw")
-        ent = node.getElementsByTagName("entity")[0]
-        mesh = str(ent.getAttribute("meshFile"))
-        if not mesh[-5:] == ".mesh":
-            raise "expected .mesh file, got: " + mesh
-        name = mesh[:-5]
-        i=1
-        while name in names:
-            name = mesh[:-5] + "." + str(i)
-            i +=1
-        names.add(name)
-        
-        outfile.write("mesh,graphiconly," + name + ",")
-        outfile.write(str(pos[0])+","+str(pos[1])+","+str(pos[2])+",")
-        outfile.write(str(rot[0])+","+str(rot[1])+","+str(rot[2])+","+str(rot[3]))
-        commas = row1.split(",").index('meshURI') - row1.split(',').index('orient_w')
-        outfile.write(","*commas)
-        outfile.write("meru:///" + mesh)
-        outfile.write("\n")
+        names = set()
 
+        for node in nodes:
+            name = node.getAttribute("name")
+            scale = attFloats2list(node.getElementsByTagName("scale")[0], "x", "y", "z")
+            pos = attFloats2list(node.getElementsByTagName("position")[0], "x", "y", "z")
+            rot = attFloats2list(node.getElementsByTagName("rotation")[0], "qx", "qy", "qz", "qw")
+            ent = node.getElementsByTagName("entity")[0]
+            mesh = str(ent.getAttribute("meshFile"))
+            if not mesh[-5:] == ".mesh":
+                raise "expected .mesh file, got: " + mesh
+            name = mesh[:-5]
+            i=1
+            while name in names:
+                name = mesh[:-5] + "." + str(i)
+                i +=1
+            names.add(name)
+            
+            outfile.write("mesh,graphiconly," + name + ",")
+            outfile.write(str(pos[0])+","+str(pos[1])+","+str(pos[2])+",")
+            outfile.write(str(rot[0])+","+str(rot[1])+","+str(rot[2])+","+str(rot[3]))
+            commas = row1.split(",").index('meshURI') - row1.split(',').index('orient_w')
+            outfile.write(","*commas)
+            outfile.write("meru:///" + mesh)
+            outfile.write("\n")
 
 try:
     if len(sys.argv)==1:
-        t = Tk()
-        s = '+' + repr(300) + '+' + repr(300)
-        t.geometry(s)
-        t.update()
-        time.sleep(.1)
-        t.update()
-        filename = tkSimpleDialog.askstring("enter filename", "OK", parent=t)
-        outname = filename[:filename.rindex(".")]+".csv"
-        outhan = open(outname, "w")
-        print "converting", filename, "to", outname
+        dialog = tkFileDialog.Directory()
+        path = dialog.show()
     else:
-        filename = sys.argv[1]
-        if len(sys.argv)==2:
-            outhan = sys.stdout
-        else:
-            outhan = open(sys.argv[2], "w")
-            print "converting", filename, "to", sys.argv[2]
-
-    main(filename, outhan)
+        path = sys.argv[1]
+        
+    outfile = "max2sirikata.csv"
+    print "converting all .scene files searching recursively from", path
+    outhan = open("max2sirikata.csv", "w")
+    main(path, outhan)
+    print "saving as", outfile
 except:
     errors.append("something went wrong")
 
 if len(sys.argv)==1:
     def cb():
-        outhan.close()
         exit()
 
+    t = Tk()
     if errors:
         l = Label(t, text="UPLOAD ERRORS")
         l.pack()
