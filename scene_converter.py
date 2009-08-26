@@ -11,8 +11,8 @@ def attFloats2list(el, *ats):
     return ret
 
 row1 = 'objtype,subtype,name,pos_x,pos_y,pos_z,orient_x,orient_y,orient_z,orient_w,scale_x,scale_y,scale_z,hull_x,hull_y,hull_z,density,friction,bounce,colMask,colMsg,meshURI,diffuse_x,diffuse_y,diffuse_z,ambient,specular_x,specular_y,specular_z,shadowpower,range,constantfall,linearfall,quadfall,cone_in,cone_out,power,cone_fall,shadow'
-row2 = 'light,directional,,-1.86,3515.99,3.32,22.45,-63.46,-164.4,,,,,,,,,,,,,,0.6,0.6,0.6,0.33,0.99,0.97,0.9,0.11,200000,0,0,0,30,40,0.9,1,0'
-row3 = 'camera,,,76.95,4598.41,25.59,-8.81,81.34,1.34,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,'
+row2 = 'light,directional,,-1.86,0,3.32,22.45,-63.46,-164.4,,,,,,,,,,,,,,0.6,0.6,0.6,0.33,0.99,0.97,0.9,0.11,200000,0,0,0,30,40,0.9,1,0'
+row3 = 'camera,,,0,0,0,0,0,0,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,'
 
 errors = []
 
@@ -63,7 +63,7 @@ def main(fname, outfile=sys.stdout):
         outfile.write(str(rot[0])+","+str(rot[1])+","+str(rot[2])+","+str(rot[3]))
         commas = row1.split(",").index('meshURI') - row1.split(',').index('orient_w')
         outfile.write(","*commas)
-        outfile.write(mesh)
+        outfile.write("meru:///" + mesh)
         outfile.write("\n")
 
 
@@ -76,7 +76,7 @@ try:
         time.sleep(.1)
         t.update()
         filename = tkSimpleDialog.askstring("enter filename", "OK", parent=t)
-        outname = filename[:-4]+".csv"
+        outname = filename[:filename.rindex(".")]+".csv"
         outhan = open(outname, "w")
         print "converting", filename, "to", outname
     else:
