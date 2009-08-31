@@ -1,3 +1,5 @@
+#!/usr/bin/python
+#check integrity of DDS files
 import os, sys
 
 if len(sys.argv) > 1:
@@ -19,7 +21,8 @@ for fil in files:
         h = ord(s[16]) + ord(s[17])*256
         siz = os.path.getsize(fil)
         res = w*h
-        if not int((siz-141)*1.5) == res:
+        est = int((siz-141)*1.5)
+        if not est >= res and (est-50) < res:
             print "BAD DDS file, resolution =", w, h, fil
         else:
             print "GOOD DDS file, resolution =", w, h, fil
