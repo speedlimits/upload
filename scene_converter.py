@@ -77,8 +77,9 @@ def main(path, outfile=sys.stdout):
             
             outfile.write("mesh,graphiconly," + name + ",")
             outfile.write(str(pos[0])+","+str(pos[1])+","+str(pos[2])+",")
-            outfile.write(str(rot[0])+","+str(rot[1])+","+str(rot[2])+","+str(rot[3]))
-            commas = row1.split(",").index('meshURI') - row1.split(',').index('orient_w')
+            outfile.write(str(rot[0])+","+str(rot[1])+","+str(rot[2])+","+str(rot[3])+",")
+            outfile.write(str(scale[0])+","+str(scale[1])+","+str(scale[2]))
+            commas = row1.split(",").index('meshURI') - row1.split(',').index('scale_z')
             outfile.write(","*commas)
             outfile.write("meru:///" + mesh)
             outfile.write("\n")
