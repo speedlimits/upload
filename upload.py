@@ -124,7 +124,7 @@ def main():
             ftp.rename("content3/names/" + tempfilename, "content3/names/" + fil)
         except:
             error( "problem uploading name file -- read only? skipping this one")
-            raise
+##            raise
     say( "done")
     say( "----------------------------------------------------------")
 
